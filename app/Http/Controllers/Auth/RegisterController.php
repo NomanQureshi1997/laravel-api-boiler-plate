@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Http\Requests\RegisterRequest; // Import the form request
+use Spatie\Permission\Models\Role;
 
 class RegisterController extends Controller
 {
@@ -31,6 +32,19 @@ class RegisterController extends Controller
 
             // Create a personal access token
             $token = $user->createToken('Personal Access Token')->accessToken; // Use plainTextToken to get the token string
+
+            // Assign role if provided
+            if ($request->has('role_id')) {
+                $role = Role::find($request->role_id);
+
+                if ($role) {
+                    $user->assignRole($role);
+                } else {
+                    // If the role does not exist, you may want to handle this case
+                    DB::rollBack();
+                    return response()->json(['error' => 'Role not found'], 404);
+                }
+            }
 
             DB::commit(); // Commit the transaction
 
