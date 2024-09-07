@@ -7,7 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
-
+use App\Http\Controllers\ContractController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,14 +19,18 @@ use App\Http\Controllers\UserController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Public routes (no authentication required)
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [LoginController::class, 'login']);
-Route::resource('roles', RoleController::class);
-Route::resource('permissions', PermissionController::class);
-Route::post('roles/{roleId}/permissions/assign', [RoleController::class, 'assignPermission']);
-Route::post('roles/{roleId}/permissions/revoke', [RoleController::class, 'revokePermission']);
-Route::post('users/{id}/assign-role', [UserController::class, 'assignRole']);
-Route::post('users/{id}/revoke-role', [UserController::class, 'revokeRole']);
+
+// Protected routes (require authentication)
+Route::middleware('auth:api')->group(function () {
+    Route::resource('roles', RoleController::class);
+    Route::resource('permissions', PermissionController::class);
+
+    Route::post('roles/{roleId}/permissions/assign', [RoleController::class, 'assignPermission']);
+    Route::post('roles/{roleId}/permissions/revoke', [RoleController::class, 'revokePermission']);
+    Route::resource('users', UserController::class);
+    Route::resource('contracts', ContractController::class);
+
+});

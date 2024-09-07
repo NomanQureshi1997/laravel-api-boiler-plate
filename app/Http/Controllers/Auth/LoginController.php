@@ -17,36 +17,40 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        // Validate the request
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
+// Validate the request
+$validator = Validator::make($request->all(), [
+    'email' => 'required|string|email',
+    'password' => 'required|string',
+]);
+
+if ($validator->fails()) {
+    return response()->json($validator->errors(), 422);
+}
+
+// Attempt to log in the user
+if (Auth::attempt($request->only('email', 'password'))) {
+    $user = Auth::user();
     
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+    // Create a token
+    $token = $user->createToken('Access Token')->accessToken;
     
-        // Attempt to log in the user
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $user = Auth::user();
-            
-            // Create a token
-            $token = $user->createToken('Access Token')->accessToken;
-            
-            // Retrieve the user's roles and permissions
-            $roles = $user->getRoleNames(); // Get all roles
-            $permissions = $user->getAllPermissions()->pluck('name'); // Get all permissions
+    // Retrieve the user's first role and all permission names
+    $role = $user->getRoleNames()->first(); // Get the first role
+    $permissions = $user->getAllPermissions()->pluck('name'); // Get all permission names
     
-            // Return the token, user, roles, and permissions
-            return response()->json([
-                'token' => $token, 
-                'user' => $user, 
-                'roles' => $roles, 
-                'permissions' => $permissions
-            ], 200);
-        }
+    // Remove the roles and permissions from the user object
+    $user->setHidden(['roles', 'permissions','password', 'remember_token', 'email_verified_at']);
     
-        return response()->json(['error' => 'Unauthorized'], 401);
-    }    
+    // Return the token, user, role, and permissions
+    return response()->json([
+        'token' => $token, 
+        'user' => $user, 
+        'role' => $role,  // Return only the first role
+        'permissions' => $permissions // Return the permission names
+    ], 200);
+}
+
+return response()->json(['error' => 'Unauthorized'], 401);
+
+    } 
 }

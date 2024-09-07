@@ -27,8 +27,8 @@ class RegisterRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users', new ValidEmailDomain], // Apply the custom rule
-            'password' => 'required|string|min:6|confirmed',
-            'role_id' => 'nullable|exists:roles,id|integer',
+            'password' => 'required|string|min:8',
+            'role' => 'required|string|exists:roles,name',
         ];
     }
 

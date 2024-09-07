@@ -10,7 +10,7 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::all();
+        $roles = Role::where('name', 'not like', '%admin%')->get();
         return response()->json($roles);
     }
 
@@ -21,7 +21,7 @@ class RoleController extends Controller
         ]);
 
         // Prevent creating the 'admin' role manually
-        if (strtolower($request->name) === 'admin') {
+        if (strtolower($request->name) === 'admin' || strtolower($request->name) === 'super-admin') {
             return response()->json(['error' => 'Cannot create the admin role.'], 403);
         }
 
